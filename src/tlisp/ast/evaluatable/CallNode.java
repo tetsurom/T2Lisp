@@ -9,6 +9,7 @@ public class CallNode extends EvaluatableNode {
 
 	private ArrayList<EvaluatableNode> parameters;
 	private String name;
+	private Function function;
 	
 	public CallNode(String name, ArrayList<EvaluatableNode> parameters) {
 		this.name = name;
@@ -17,11 +18,20 @@ public class CallNode extends EvaluatableNode {
 	
 	@Override
 	public double eval(EvaluateContext context) {
-		Function function = context.getFunction(this.name);
-		if(function != null){
-			return function.call(context, this.parameters);
+		if(this.function == null){
+			this.function = context.getFunction(this.name);
+			if(this.function == null){
+				try{
+					double result = context.getVariableValue(this.name);
+					for(int i = 0; i < parameters.size(); ++i){
+						result = parameters.get(i).eval(context); 
+					}
+					return result;
+				}catch(NoSuchFieldError e){
+					throw new NoSuchMethodError(this.name);
+				}
+			}
 		}
-		throw new NoSuchMethodError(this.name);
+		return function.call(context, this.parameters);
 	}
-
 }

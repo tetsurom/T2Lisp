@@ -11,6 +11,7 @@ import tlisp.ast.Node;
 import tlisp.ast.NumberNode;
 import tlisp.ast.SymbolNode;
 import tlisp.ast.evaluatable.AstNode;
+import tlisp.ast.evaluatable.BlockNode;
 import tlisp.ast.evaluatable.CallNode;
 import tlisp.ast.evaluatable.ConstantNode;
 import tlisp.ast.evaluatable.EvaluatableNode;
@@ -78,12 +79,14 @@ public class EvaluateContext {
 					throw new RuntimeException("few arguments for defun");
 				}
 				String name = ((VariableNode)parameters.get(0)).getName();
-				AstNode args = (AstNode)parameters.get(1);
-				AstNode body = (AstNode)parameters.get(2);
-				context.parameterNodes = args.getAst().getNodes();
-				ListNode bodyListNode = body.getAst();
-				bodyListNode.setLiteralNode(false);
-				EvaluatableNode eBody = context.createEvaluatableNode(bodyListNode);
+				if(context.functions.containsKey(name)){
+					return 0;
+				}
+				ListNode args = ((AstNode)parameters.get(1)).getAst();
+				ListNode body = ((AstNode)parameters.get(2)).getAst();
+				context.parameterNodes = args.getNodes();
+				body.setLiteralNode(false);
+				EvaluatableNode eBody = context.createEvaluatableNode(body);
 				context.parameterNodes = null;
 				context.functions.put(name, new LispFunction(eBody));
 				return 1;
@@ -115,14 +118,23 @@ public class EvaluateContext {
 				return new AstNode((ListNode)node);
 			}
 			List<Node> nodes = ((ListNode)node).getNodes();
-			if(nodes.get(0) instanceof SymbolNode){
-				String name = ((SymbolNode)nodes.get(0)).getSymbol();
-				ArrayList<EvaluatableNode> parameters = new  ArrayList<>();
+			if(nodes.isEmpty()){
+				return new ConstantNode(0);
+			}
+			Node firstNode = nodes.get(0);
+			if(firstNode instanceof SymbolNode){
+				String name = ((SymbolNode)firstNode).getSymbol();
+				ArrayList<EvaluatableNode> parameters = new ArrayList<>();
 				for(int i = 1; i < nodes.size(); ++i){
 					parameters.add(this.createEvaluatableNode(nodes.get(i)));
 				}
 				return new CallNode(name, parameters);
 			}
+			BlockNode block = new BlockNode();
+			for(Node nodeInBlock : nodes){
+				block.addNode(this.createEvaluatableNode(nodeInBlock));
+			}
+			return block;
 		}
 		if(node instanceof SymbolNode){
 			String name = ((SymbolNode)node).getSymbol();

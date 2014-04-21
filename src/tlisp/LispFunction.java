@@ -16,7 +16,7 @@ public class LispFunction implements Function {
 	public double call(EvaluateContext context, ArrayList<EvaluatableNode> parameters) {
 		double[] parameterValues = new double[parameters.size()];
 		for(int i = 0; i < parameters.size(); ++i){
-			parameterValues[i]= parameters.get(i).eval(context); 
+			parameterValues[i] = parameters.get(i).eval(context); 
 		}
 		try{
 			context.pushParameter(parameterValues);
