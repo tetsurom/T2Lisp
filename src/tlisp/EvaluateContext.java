@@ -42,7 +42,11 @@ public class EvaluateContext {
 					if(i > 0){
 						builder.append(" ");
 					}
-					builder.append(parameter[i]);
+					if(Math.floor(parameter[i]) == parameter[i]){
+						builder.append((long)parameter[i]);
+					}else{
+						builder.append(parameter[i]);
+					}
 				}
 				System.out.println(builder.toString());
 				return 0;
@@ -131,10 +135,13 @@ public class EvaluateContext {
 		throw new RuntimeException("unknown ast: " + node);
 	}
 	
-	public void evaluateNode(ListNode toplevelNode){
+	public void evaluateNode(ListNode toplevelNode, boolean print){
 		for(Node node : toplevelNode.getNodes()){
 			EvaluatableNode eNode = this.createEvaluatableNode(node);
-			eNode.eval(this);
+			double result = eNode.eval(this);
+			if(print){
+				System.out.println(result);
+			}
 		}
 	}
 
